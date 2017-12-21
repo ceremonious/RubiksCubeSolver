@@ -2,6 +2,7 @@ import java.util.Random;
 
 public class RubixCube2x2 {
     private int[][] cube;
+    private char[] colors = {'Y', 'G', 'W', 'B', 'O', 'R'};
 
     public RubixCube2x2() {
         cube = new int[6][4];
@@ -62,7 +63,6 @@ public class RubixCube2x2 {
         output[1] = coords[3];
         output[2] = coords[0];
         output[3] = coords[1];
-        //4 -> 14, 5-> 15, 6 -> 12, 7 -> 13, 8 -> 10
         for (int i = 4; i < output.length; i += 2) {
             output[i] = coords[18 - i];
             output[i + 1] = coords[19 - i];
@@ -100,13 +100,20 @@ public class RubixCube2x2 {
         cube[coords[6]][coords[7]] = temp1;
     }
 
-    public int distanceFromEnd() {
-        return -1;
+    public int hammingDistance() {
+        int dist = 0;
+        for (int i = 0; i < cube.length; i++) {
+            for (int num : cube[i]) {
+                if (num != i) {
+                    dist++;
+                }
+            }
+        }
+        return dist;
     }
 
     public String toString() {
         String s = "";
-        char[] colors = {'Y', 'G', 'W', 'B', 'O', 'R'};
         for (int[] face : cube) {
             s += colors[face[0]] + " " + colors[face[1]] + "\n";
             s += colors[face[2]] + " " + colors[face[3]] + "\n";
@@ -115,10 +122,9 @@ public class RubixCube2x2 {
     }
 
     public static void main(String[] args) {
-        for (int i = 0; i < 10000000; i++) {
-            RubixCube2x2 test = new RubixCube2x2();
-            System.out.println(test.scramble());
-            //System.out.println(test);
-        }
+        RubixCube2x2 test = new RubixCube2x2();
+        System.out.println(test.hammingDistance());
+        System.out.println(test.scramble());
+        System.out.println(test.hammingDistance());
     }
 }

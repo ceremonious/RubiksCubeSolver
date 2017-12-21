@@ -1,8 +1,11 @@
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class RubixCube2x2 {
+    private static char[] colors = {'Y', 'G', 'W', 'B', 'O', 'R'};
+    private static String[] moves = {"R", "L", "U", "D", "F", "B"};
     private int[][] cube;
-    private char[] colors = {'Y', 'G', 'W', 'B', 'O', 'R'};
 
     public RubixCube2x2() {
         cube = new int[6][4];
@@ -12,11 +15,27 @@ public class RubixCube2x2 {
         }
     }
 
+    public RubixCube2x2(int[][] cube) {
+        this.cube = cube.clone();
+    }
+
+    public List<RubixCube2x2> getNeighbors() {
+        List<RubixCube2x2> neighbors = new LinkedList<>();
+        for (String move : moves) {
+            makeMove(move);
+            neighbors.add(new RubixCube2x2(cube));
+            makeMove(move + "'");
+            makeMove(move + "'");
+            neighbors.add(new RubixCube2x2(cube));
+            makeMove(move);
+        }
+        return neighbors;
+    }
+
     public String scramble() {
         StringBuilder scramble = new StringBuilder();
         int numMoves = 9;
         Random r = new Random();
-        String[] moves = {"R", "L", "U", "D", "F", "B"};
         for (int i = 0; i < numMoves; i++) {
             int rand = r.nextInt(6);
             String direction = Math.random() < 0.5 ? "" : "'";
@@ -112,6 +131,25 @@ public class RubixCube2x2 {
         return dist;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other == null || !(other instanceof RubixCube2x2)) {
+            return false;
+        }
+        if (other == this) {
+            return true;
+        }
+        for (int i = 0; i < cube.length; i++) {
+            for (int j = 0; j < cube[i].length; j++) {
+                if (cube[i][j] != ((RubixCube2x2) other).cube[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
     public String toString() {
         String s = "";
         for (int[] face : cube) {

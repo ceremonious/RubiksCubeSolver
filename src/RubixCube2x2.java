@@ -18,7 +18,7 @@ public class RubixCube2x2 {
         String[] moves = {"R", "L", "U", "D", "F", "B"};
         for (int i = 0; i < numMoves; i++) {
             int rand = r.nextInt(6);
-            String direction = Math.random() < 0.5 ? " " : "'";
+            String direction = Math.random() < 0.5 ? "" : "'";
             String move = moves[rand] + direction;
             makeMove(move);
             scramble.append(move + " ");
@@ -115,13 +115,10 @@ public class RubixCube2x2 {
     }
 
     public static void main(String[] args) {
-        RubixCube2x2 test = new RubixCube2x2();
-        //System.out.println(test.scramble());
-        //B  D' R' U  D  L  R' B  U'
-        test.makeMove("B");
-        test.makeMove("D'");
-        test.makeMove("R'");
-        test.makeMove("U");
-        System.out.println(test);
+        for (int i = 0; i < 10000000; i++) {
+            RubixCube2x2 test = new RubixCube2x2();
+            System.out.println(test.scramble());
+            //System.out.println(test);
+        }
     }
 }

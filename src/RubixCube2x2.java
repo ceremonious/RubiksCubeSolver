@@ -6,6 +6,7 @@ public class RubixCube2x2 {
     private static char[] colors = {'Y', 'G', 'W', 'B', 'O', 'R'};
     private static String[] moves = {"R", "L", "U", "D", "F", "B"};
     private int[][] cube;
+    private int hammingDistance;
 
     public RubixCube2x2() {
         cube = new int[6][4];
@@ -13,20 +14,27 @@ public class RubixCube2x2 {
             int[] face = {i, i, i, i};
             cube[i] = face;
         }
+        setHammingDistance();
     }
 
-    public RubixCube2x2(int[][] cube) {
-        this.cube = cube.clone();
+    public RubixCube2x2(int[][] newCube) {
+        cube = new int[6][4];
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 4; j++) {
+                cube[i][j] = newCube[i][j];
+            }
+        }
+        setHammingDistance();
     }
 
-    public List<RubixCube2x2> getNeighbors() {
-        List<RubixCube2x2> neighbors = new LinkedList<>();
+    public List<Neighbor> getNeighbors() {
+        List<Neighbor> neighbors = new LinkedList<>();
         for (String move : moves) {
             makeMove(move);
-            neighbors.add(new RubixCube2x2(cube));
+            neighbors.add(new Neighbor(new RubixCube2x2(cube), move));
             makeMove(move + "'");
             makeMove(move + "'");
-            neighbors.add(new RubixCube2x2(cube));
+            neighbors.add(new Neighbor(new RubixCube2x2(cube), move + "'"));
             makeMove(move);
         }
         return neighbors;
@@ -34,19 +42,29 @@ public class RubixCube2x2 {
 
     public String scramble() {
         StringBuilder scramble = new StringBuilder();
-        int numMoves = 9;
+        int numMoves = 25;
         Random r = new Random();
         for (int i = 0; i < numMoves; i++) {
             int rand = r.nextInt(6);
             String direction = Math.random() < 0.5 ? "" : "'";
             String move = moves[rand] + direction;
             makeMove(move);
-            scramble.append(move + " ");
+            scramble.append(move);
+            scramble.append(" ");
         }
+        setHammingDistance();
         return scramble.toString();
     }
 
-    public void makeMove(String move) {
+    public void scramble(String moves) {
+        String[] moveList = moves.split(" ");
+        for (String move : moveList) {
+            makeMove(move);
+        }
+        setHammingDistance();
+    }
+
+    private void makeMove(String move) {
         int[] coords = null;
         int[] faceRotateCoords = null;
         if (move.charAt(0) == 'R') {
@@ -119,7 +137,7 @@ public class RubixCube2x2 {
         cube[coords[6]][coords[7]] = temp1;
     }
 
-    public int hammingDistance() {
+    private void setHammingDistance() {
         int dist = 0;
         for (int i = 0; i < cube.length; i++) {
             for (int num : cube[i]) {
@@ -128,7 +146,15 @@ public class RubixCube2x2 {
                 }
             }
         }
-        return dist;
+        hammingDistance = dist;
+    }
+
+    public int getHammingDistance() {
+        return hammingDistance;
+    }
+
+    public boolean isSolved() {
+        return hammingDistance == 0;
     }
 
     @Override
@@ -159,10 +185,22 @@ public class RubixCube2x2 {
         return s;
     }
 
+    public class Neighbor {
+        private RubixCube2x2 cube;
+        private String move;
+        public Neighbor(RubixCube2x2 cube, String move) {
+            this.cube = cube;
+            this.move = move;
+        }
+        public RubixCube2x2 getCube() {
+            return cube;
+        }
+        public String getMove() {
+            return move;
+        }
+    }
+
     public static void main(String[] args) {
         RubixCube2x2 test = new RubixCube2x2();
-        System.out.println(test.hammingDistance());
-        System.out.println(test.scramble());
-        System.out.println(test.hammingDistance());
     }
 }

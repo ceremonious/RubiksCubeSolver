@@ -1,34 +1,37 @@
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 
 public class CubeSolver {
     public static void main(String[] args) {
-        RubixCube2x2 test = new RubixCube2x2();
-        test.scramble("R L U D R' L' R D'");
+        RubiksCube2x2 test = new RubiksCube2x2();
+        test.scramble("F' U R R U F' U B'");
         System.out.println(test);
         List<String> solved = solve(test);
         System.out.println(solved);
     }
 
-    public static List<String> solve(RubixCube2x2 cube) {
+    //Solves the given Rubiks cube using the A* algorithm
+    public static List<String> solve(RubiksCube2x2 cube) {
         if (cube == null) {
             throw new IllegalArgumentException("Cube cannot be null.");
         }
         PriorityQueue<SearchNode> queue = new PriorityQueue<>();
+        HashMap<RubiksCube2x2, Integer> visited = new HashMap<>();
         queue.add(new SearchNode(cube, null, null));
         SearchNode current = queue.peek();
-        int loops = 0;
         while (!current.isSolved()) {
             current = queue.poll();
-            loops++;
-            if (loops % 5000 == 0)
-                System.out.println(loops);
-            List<RubixCube2x2.Neighbor> neighbors = current.getCube().getNeighbors();
-            for (RubixCube2x2.Neighbor neighbor : neighbors) {
-                RubixCube2x2 neighborCube = neighbor.getCube();
-                if (current.previous == null || !neighborCube.equals(current.getPrevious().getCube())) {
-                    queue.add(new SearchNode(neighborCube, neighbor.getMove(), current));
+            List<RubiksCube2x2.Neighbor> neighbors = current.getCube().getNeighbors();
+            for (RubiksCube2x2.Neighbor neighbor : neighbors) {
+                RubiksCube2x2 neighborCube = neighbor.getCube();
+                //Only add the neighbor to the PQ if it not has been visited before with fewer moves
+                int movesToVisit = visited.getOrDefault(neighborCube, Integer.MAX_VALUE);
+                if (current.getNumMoves() + 1 < movesToVisit) {
+                    SearchNode next = new SearchNode(neighborCube, neighbor.getMove(), current);
+                    queue.add(next);
+                    visited.put(neighborCube, next.getNumMoves());
                 }
             }
         }
@@ -44,12 +47,12 @@ public class CubeSolver {
     }
 
     private static class SearchNode implements Comparable<SearchNode> {
-        private RubixCube2x2 cube;
+        private RubiksCube2x2 cube;
         private SearchNode previous;
         private String move;
         private int moves;
 
-        public SearchNode(RubixCube2x2 cube, String move, SearchNode previous) {
+        public SearchNode(RubiksCube2x2 cube, String move, SearchNode previous) {
             this.cube = cube;
             this.previous = previous;
             this.move = move;
@@ -65,14 +68,19 @@ public class CubeSolver {
         public SearchNode getPrevious() {
             return previous;
         }
-        public RubixCube2x2 getCube() {
+        public RubiksCube2x2 getCube() {
             return cube;
         }
         public String getMove() {
             return move;
         }
+        public int getNumMoves() { return moves; }
         public boolean isSolved() {
             return cube.isSolved();
+        }
+        @Override
+        public int hashCode() {
+            return cube.hashCode();
         }
     }
 }

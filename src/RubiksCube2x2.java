@@ -1,45 +1,55 @@
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-public class RubixCube2x2 {
+public class RubiksCube2x2 {
     private static char[] colors = {'Y', 'G', 'W', 'B', 'O', 'R'};
     private static String[] moves = {"R", "L", "U", "D", "F", "B"};
     private int[][] cube;
     private int hammingDistance;
+    private int hash;
 
-    public RubixCube2x2() {
+    //Creates a solved Rubiks cube
+    public RubiksCube2x2() {
         cube = new int[6][4];
         for (int i = 0; i < 6; i++) {
             int[] face = {i, i, i, i};
             cube[i] = face;
         }
-        setHammingDistance();
+        hammingDistance = 0;
+        setHash();
     }
 
-    public RubixCube2x2(int[][] newCube) {
+    //Creates a new Rubiks cube with the given faces
+    public RubiksCube2x2(int[][] newCube) {
         cube = new int[6][4];
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 4; j++) {
                 cube[i][j] = newCube[i][j];
+                if (cube[i][j] != i) {
+                    hammingDistance++;
+                }
             }
         }
-        setHammingDistance();
+        setHash();
     }
 
+    //Returns all Rubiks cube states that can be reached in one move
     public List<Neighbor> getNeighbors() {
         List<Neighbor> neighbors = new LinkedList<>();
         for (String move : moves) {
             makeMove(move);
-            neighbors.add(new Neighbor(new RubixCube2x2(cube), move));
+            neighbors.add(new Neighbor(new RubiksCube2x2(cube), move));
             makeMove(move + "'");
             makeMove(move + "'");
-            neighbors.add(new Neighbor(new RubixCube2x2(cube), move + "'"));
+            neighbors.add(new Neighbor(new RubiksCube2x2(cube), move + "'"));
             makeMove(move);
         }
         return neighbors;
     }
 
+    //Scramble the cube and returns the scramble used
     public String scramble() {
         StringBuilder scramble = new StringBuilder();
         int numMoves = 25;
@@ -53,20 +63,24 @@ public class RubixCube2x2 {
             scramble.append(" ");
         }
         setHammingDistance();
+        setHash();
         return scramble.toString();
     }
 
+    //Scramble the cube with the given string of moves
     public void scramble(String moves) {
         String[] moveList = moves.split(" ");
         for (String move : moveList) {
             makeMove(move);
         }
         setHammingDistance();
+        setHash();
     }
 
+    //Makes the given move on the cube
     private void makeMove(String move) {
-        int[] coords = null;
-        int[] faceRotateCoords = null;
+        int[] coords;
+        int[] faceRotateCoords;
         if (move.charAt(0) == 'R') {
             coords = new int[]{0, 1, 0, 3, 5, 1, 5, 3, 2, 2, 2, 0, 4, 1, 4, 3};
             faceRotateCoords = new int[]{1, 0, 1, 2, 1, 3, 1, 1};
@@ -90,10 +104,13 @@ public class RubixCube2x2 {
         }
         coords = move.length() == 2 ? reverseMove(coords) : coords;
         faceRotateCoords = move.length() == 2 ? reverseFaceMove(faceRotateCoords) : faceRotateCoords;
+        //Rotates the "ring" that gets moved
         rotate(coords);
+        //Rotates the face that changes in orientation
         faceRotate(faceRotateCoords);
     }
 
+    //Given the coordinates for one move, this returns the coordinates for the inverse move
     private int[] reverseMove(int[] coords) {
         int[] output = new int[16];
         output[0] = coords[2];
@@ -107,12 +124,14 @@ public class RubixCube2x2 {
         return output;
     }
 
+    //Given the coordinates for one move, this returns the coordinates for the inverse move
     private int[] reverseFaceMove(int[] coords) {
         int[] output = new int[]{coords[0], coords[1], coords[6], coords[7],
                 coords[4], coords[5], coords[2], coords[3]};
         return output;
     }
 
+    //Rotates the ring that gets moved
     private void rotate(int[] coords) {
         if (coords.length != 16) {
             throw new IllegalArgumentException("coords must be length 16");
@@ -126,6 +145,7 @@ public class RubixCube2x2 {
         cube[coords[14]][coords[15]] = temp2;
     }
 
+    //Rotates the orientation of the face that gets moved
     private void faceRotate(int[] coords) {
         if (coords.length != 8) {
             throw new IllegalArgumentException("coords must be length 8");
@@ -137,6 +157,7 @@ public class RubixCube2x2 {
         cube[coords[6]][coords[7]] = temp1;
     }
 
+    //Calculates how many square are not on the correct face
     private void setHammingDistance() {
         int dist = 0;
         for (int i = 0; i < cube.length; i++) {
@@ -159,7 +180,7 @@ public class RubixCube2x2 {
 
     @Override
     public boolean equals(Object other) {
-        if (other == null || !(other instanceof RubixCube2x2)) {
+        if (other == null || !(other instanceof RubiksCube2x2)) {
             return false;
         }
         if (other == this) {
@@ -167,12 +188,21 @@ public class RubixCube2x2 {
         }
         for (int i = 0; i < cube.length; i++) {
             for (int j = 0; j < cube[i].length; j++) {
-                if (cube[i][j] != ((RubixCube2x2) other).cube[i][j]) {
+                if (cube[i][j] != ((RubiksCube2x2) other).cube[i][j]) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    private void setHash() {
+        hash = Arrays.hashCode(cube);
+    }
+
+    @Override
+    public int hashCode() {
+        return hash;
     }
 
     @Override
@@ -186,13 +216,13 @@ public class RubixCube2x2 {
     }
 
     public class Neighbor {
-        private RubixCube2x2 cube;
+        private RubiksCube2x2 cube;
         private String move;
-        public Neighbor(RubixCube2x2 cube, String move) {
+        public Neighbor(RubiksCube2x2 cube, String move) {
             this.cube = cube;
             this.move = move;
         }
-        public RubixCube2x2 getCube() {
+        public RubiksCube2x2 getCube() {
             return cube;
         }
         public String getMove() {
@@ -201,6 +231,6 @@ public class RubixCube2x2 {
     }
 
     public static void main(String[] args) {
-        RubixCube2x2 test = new RubixCube2x2();
+        RubiksCube2x2 test = new RubiksCube2x2();
     }
 }
